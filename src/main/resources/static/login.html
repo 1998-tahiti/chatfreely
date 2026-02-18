@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatFreely - Login</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            background: white;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form {
+            display: none;
+        }
+
+        .form.active {
+            display: block;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="auth-container">
+    <div class="logo">
+        <h1>ChatFreely</h1>
+        <p>Create rooms. Talk freely.</p>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('login')">Sign In</div>
+        <div class="tab" onclick="showTab('register')">Sign Up</div>
+    </div>
+
+    <div class="form-container">
+        <!-- Login Form -->
+        <form id="loginForm" class="form active">
+            <div class="input-group">
+                <input type="text" id="loginUsername" placeholder="Username" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="loginPassword" placeholder="Password" required>
+            </div>
+            <button type="submit" id="loginBtn">Sign In</button>
+            <div class="loading" id="loginLoading">Signing in...</div>
+            <div class="message" id="loginMessage"></div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="form">
+            <div class="input-group">
+                <input type="text" id="registerUsername" placeholder="Choose a username" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="registerPassword" placeholder="Create a password" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="registerConfirmPassword" placeholder="Confirm password" required>
+            </div>
+            <button type="submit" id="registerBtn">Create Account</button>
+            <div class="loading" id="registerLoading">Creating account...</div>
+            <div class="message" id="registerMessage"></div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentTab = 'login';
+
+    function showTab(tabName) {
+        currentTab = tabName;
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelectorAll(`[onclick="showTab('${tabName}')"]`).forEach(tab => {
+            tab.classList.add('active');
+        });
+
+        document.querySelectorAll('.form').forEach(form => {
+            form.classList.remove('active');
+        });
+        document.getElementById(tabName + 'Form').classList.add('active');
+
+        document.getElementById('loginMessage').className = 'message';
+        document.getElementById('registerMessage').className = 'message';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+
+        if (!username || !password) {
+            showMessage('loginMessage', 'Please fill in all fields', 'error');
+            return;
+        }
+
+        const loginBtn = document.getElementById('loginBtn');
+        const loading = document.getElementById('loginLoading');
+
+        loginBtn.disabled = true;
+        loading.classList.add('active');
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                localStorage.setItem('username', username);
+                localStorage.setItem('isAuthenticated', 'true');
+                window.location.href = 'rooms.html';
+            } else {
+                showMessage('loginMessage', data.message, 'error');
+            }
+        } catch (error) {
+            showMessage('loginMessage', 'Network error. Please try again.', 'error');
+        } finally {
+            loginBtn.disabled = false;
+            loading.classList.remove('active');
+        }
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const username = document.getElementById('registerUsername').value.trim();
+        const password = document.getElementById('registerPassword').value.trim();
+        const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
+
+        if (!username || !password || !confirmPassword) {
+            showMessage('registerMessage', 'Please fill in all fields', 'error');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            showMessage('registerMessage', 'Passwords do not match', 'error');
+            return;
+        }
+
+        if (password.length < 6) {
+            showMessage('registerMessage', 'Password must be at least 6 characters', 'error');
+            return;
+        }
+
+        const registerBtn = document.getElementById('registerBtn');
+        const loading = document.getElementById('registerLoading');
+
+        registerBtn.disabled = true;
+        loading.classList.add('active');
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showMessage('registerMessage', 'Account created successfully! Please sign in.', 'success');
+
+                document.getElementById('registerForm').reset();
+                setTimeout(() => showTab('login'), 2000);
+            } else {
+                showMessage('registerMessage', data.message, 'error');
+            }
+        } catch (error) {
+            showMessage('registerMessage', 'Network error. Please try again.', 'error');
+        } finally {
+            registerBtn.disabled = false;
+            loading.classList.remove('active');
+        }
+    });
+
+    function showMessage(elementId, text, type) {
+        const element = document.getElementById(elementId);
+        element.textContent = text;
+        element.className = `message ${type}`;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatFreely</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            height: calc(100vh - 40px);
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px 15px 0 0;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .logo h1 {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .room-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: #f0f7ff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 2px solid #e1e5e9;
+        }
+
+        .room-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .room-code {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-family: monospace;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-badge {
+            background: #667eea;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #ff5252;
+        }
+
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .no-messages {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .message-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            padding: 15px 20px;
+            border-radius: 15px;
+            max-width: 70%;
+            word-wrap: break-word;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.sent {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.sent::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: -8px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 0 10px 10px;
+            border-color: transparent transparent transparent #667eea;
+        }
+
+        .message.received {
+            background: white;
+            color: #333;
+            align-self: flex-start;
+            border: 2px solid #e1e5e9;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message.received::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -8px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 10px 10px 0;
+            border-color: transparent #e1e5e9 transparent transparent;
+        }
+
+        .message.event {
+            background: #fff3cd;
+            color: #856404;
+            align-self: center;
+            max-width: 90%;
+            text-align: center;
+            border: 2px solid #ffeaa7;
+            font-size: 14px;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .sender {
+            font-weight: 600;
+        }
+
+        .message-content {
+            line-height: 1.5;
+        }
+
+        .input-area {
+            padding: 20px 30px;
+            background: white;
+            border-top: 2px solid #f0f2f5;
+        }
+
+        .message-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .message-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        .typing-indicator {
+            padding: 10px 20px;
+            color: #666;
+            font-size: 14px;
+            font-style: italic;
+            opacity: 0.7;
+            display: none;
+        }
+
+        .typing-indicator.active {
+            display: block;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .room-info, .user-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .message {
+                max-width: 85%;
+            }
+
+            .message-form {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .send-btn {
+                width: 100%;
+            }
+        }
+
+        .timestamp {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .message.sent .status {
+            font-size: 11px;
+            text-align: right;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <header>
+        <div class="logo">
+            <h1>💬 ChatFreely</h1>
+        </div>
+        <div class="room-info">
+            <div class="room-name" id="roomNameDisplay">Loading...</div>
+            <div class="room-code" id="roomCodeDisplay"></div>
+        </div>
+        <div class="user-info">
+            <div class="user-badge" id="usernameDisplay"></div>
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+
+    <div class="chat-main">
+        <div class="messages-container" id="messagesContainer">
+            <div class="message-area" id="messageArea">
+                <div id="noMessages" class="no-messages">No messages yet. Start the conversation!</div>
+            </div>
+            <div class="typing-indicator" id="typingIndicator"></div>
+        </div>
+
+        <div class="input-area">
+            <form class="message-form" id="messageForm">
+                <input type="text"
+                       class="message-input"
+                       id="message"
+                       placeholder="Type your message here..."
+                       autocomplete="off"
+                       autofocus>
+                <button type="submit" class="send-btn" id="sendBtn">Send Message</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+<script>
+    const roomCode = new URLSearchParams(window.location.search).get("room");
+    const username = localStorage.getItem("username");
+    const isAuthenticated = localStorage.getItem("isAuthenticated");
+    const roomName = localStorage.getItem("currentRoomName") || roomCode || "";
+
+    if (isAuthenticated !== "true" || !username || !roomCode) {
+        window.location.href = "login.html";
+    }
+
+    document.getElementById("roomNameDisplay").textContent = roomName ? roomName : "Chat Room";
+    document.getElementById("roomCodeDisplay").textContent = roomCode || "";
+    document.getElementById("usernameDisplay").textContent = username;
+
+    const messageForm = document.getElementById("messageForm");
+    const messageInput = document.getElementById("message");
+    const messageArea = document.getElementById("messageArea");
+    const messagesContainer = document.getElementById("messagesContainer");
+    const typingIndicator = document.getElementById("typingIndicator");
+
+    const currentDate = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    const socket = new SockJS("/ws");
+    const stompClient = Stomp.over(socket);
+    stompClient.debug = (s) => console.log("STOMP:", s);
+
+    function scrollToBottom() {
+        requestAnimationFrame(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+    }
+
+    function formatTimestamp(date) {
+        return new Date(date).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function showMessage(msg) {
+        const noMessages = document.getElementById("noMessages");
+        if (noMessages) noMessages.style.display = "none";
+
+        const messageDiv = document.createElement("div");
+        const timestamp = formatTimestamp(msg.timestamp || new Date());
+
+        if (msg.type === "JOIN" || msg.type === "LEAVE") {
+            messageDiv.className = "message event";
+            messageDiv.textContent = msg.content || `${msg.sender} ${msg.type === "JOIN" ? "joined" : "left"} the room`;
+        } else {
+            const isMine = msg.sender === username;
+            messageDiv.className = "message " + (isMine ? "sent" : "received");
+
+            const messageHeader = isMine
+                ? `<div class="message-header"><span class="timestamp">${timestamp}</span><span class="sender">You</span></div>`
+                : `<div class="message-header"><span class="sender">${msg.sender}</span><span class="timestamp">${timestamp}</span></div>`;
+
+            messageDiv.innerHTML = `
+                ${messageHeader}
+                <div class="message-content">${escapeHtml(msg.content)}</div>
+                ${isMine ? '<div class="status">✓ Delivered</div>' : ''}
+            `;
+        }
+
+        messageArea.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    async function loadHistory() {
+        try {
+            const res = await fetch(`/api/messages/${roomCode}`);
+            const history = await res.json();
+            history.forEach(showMessage);
+            scrollToBottom();
+        } catch (e) {
+            console.error("Failed to load history", e);
+        }
+    }
+
+    function logout() {
+        try {
+            if (stompClient && stompClient.connected) {
+                stompClient.send("/app/chat.leaveRoom", {}, JSON.stringify({
+                    sender: username,
+                    type: "LEAVE",
+                    roomCode: roomCode,
+                    content: `${username} left the room`,
+                    timestamp: new Date()
+                }));
+            }
+        } catch (e) {
+            console.error("Error sending leave message:", e);
+        }
+
+        const goLogin = () => {
+            localStorage.removeItem("isAuthenticated");
+            localStorage.removeItem("username");
+            localStorage.removeItem("currentRoomCode");
+            localStorage.removeItem("currentRoomName");
+            window.location.href = "login.html";
+        };
+
+        if (stompClient) {
+            stompClient.disconnect(() => goLogin());
+        } else {
+            goLogin();
+        }
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", logout);
+
+    stompClient.connect({}, () => {
+        stompClient.subscribe("/topic/room/" + roomCode, (payload) => {
+            const msg = JSON.parse(payload.body);
+            showMessage(msg);
+        });
+
+        loadHistory();
+
+        stompClient.send("/app/chat.joinRoom", {}, JSON.stringify({
+            sender: username,
+            type: "JOIN",
+            roomCode: roomCode,
+            content: `${username} joined the room`,
+            timestamp: new Date()
+        }));
+
+        let typingTimeout;
+        messageInput.addEventListener('input', () => {
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+            }, 1000);
+        });
+    });
+
+    messageForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const content = messageInput.value.trim();
+        if (!content) return;
+
+        const messageData = {
+            sender: username,
+            type: "CHAT",
+            roomCode: roomCode,
+            content: content,
+            timestamp: new Date()
+        };
+
+        stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(messageData));
+
+        messageInput.value = "";
+        messageInput.focus();
+    });
+
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            messageForm.dispatchEvent(new Event('submit'));
+        }
+    });
+
+    window.addEventListener('load', () => {
+        messageInput.focus();
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (stompClient && stompClient.connected) {
+            stompClient.send("/app/chat.leaveRoom", {}, JSON.stringify({
+                sender: username,
+                type: "LEAVE",
+                roomCode: roomCode,
+                content: `${username} left the room`,
+                timestamp: new Date()
+            }));
+        }
+    });
+</script>
+</body>
+</html>

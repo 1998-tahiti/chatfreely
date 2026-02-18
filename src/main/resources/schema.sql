@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS chat_messages (
+     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+     sender VARCHAR(255) NOT NULL,
+    content TEXT,
+    message_type VARCHAR(50),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
