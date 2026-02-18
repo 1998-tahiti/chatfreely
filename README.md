@@ -72,6 +72,12 @@ Maven build system
 → Join notifications and delivery status are displayed in real time.
 
 ## Screenshots 
+### Sign In / Sign Up Page
+![Login Page](screenshots/login.png)
+### Room Selection
+![Room Selection](screenshots/room.png)
+### Chat Interface
+![Chat Room](screenshots/chat.png)
 
 ## Running the Project Locally
 
